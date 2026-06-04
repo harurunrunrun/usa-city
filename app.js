@@ -186,7 +186,7 @@ function googleMapsUrl(q = current) {
 
 function googleMapsEmbedUrl(q = current) {
   const query = googleMapsQuery(q);
-  return query ? `https://www.google.com/maps?q=${encodeURIComponent(query)}&z=6&output=embed` : '';
+  return query ? `https://www.google.com/maps?q=${encodeURIComponent(query)}&z=10&output=embed` : '';
 }
 
 function closeMapDialog() {
