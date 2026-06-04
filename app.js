@@ -176,6 +176,7 @@ function googleMapsQuery(q = current) {
   if (!q) return '';
   const region = stateByAbbr[q.abbr];
   if (!region) return q.city;
+  if (region.region === 'U.S. territories') return `${q.city}, ${region.name}`;
   return `${q.city}, ${region.name}, ${region.country}`;
 }
 
@@ -186,7 +187,13 @@ function googleMapsUrl(q = current) {
 
 function googleMapsEmbedUrl(q = current) {
   const query = googleMapsQuery(q);
-  return query ? `https://www.google.com/maps?q=${encodeURIComponent(query)}&z=10&output=embed` : '';
+  if (!query) return '';
+  const params = new URLSearchParams({
+    q: query,
+    z: '10',
+    output: 'embed',
+  });
+  return `https://maps.google.com/maps?${params.toString()}`;
 }
 
 function closeMapDialog() {
