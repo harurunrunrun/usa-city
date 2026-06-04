@@ -30,6 +30,10 @@ const els = {
   confirmGiveUp: document.getElementById('confirmGiveUp'),
   tweetGiveUp: document.getElementById('tweetGiveUp'),
   closeGiveUpDialog: document.getElementById('closeGiveUpDialog'),
+  mapDialog: document.getElementById('mapDialog'),
+  mapDialogTitle: document.getElementById('mapDialogTitle'),
+  mapFrame: document.getElementById('mapFrame'),
+  closeMapDialog: document.getElementById('closeMapDialog'),
   regionSelect: document.getElementById('regionSelect'),
   modeSelect: document.getElementById('modeSelect'),
   map: document.getElementById('usTileMap'),
@@ -154,13 +158,65 @@ function isCorrectSelection(selected) { return correctStates().some(s => s.abbr 
 function currentProblemName() { return current ? current.city : '---'; }
 
 function setQuestionDisplay(label, isCity = false) {
-  els.areaCode.textContent = label;
+  els.areaCode.replaceChildren(document.createTextNode(label));
   els.areaCode.classList.remove('city-label', 'long', 'very-long');
   if (!isCity) return;
   els.areaCode.classList.add('city-label');
   const len = label.length;
   if (len >= 22) els.areaCode.classList.add('very-long');
   else if (len >= 15) els.areaCode.classList.add('long');
+}
+
+function recordForState(abbr, q = current) {
+  if (!q) return null;
+  return sameCityRecords(q).find(item => item.abbr === abbr) || null;
+}
+
+function googleMapsQuery(q = current) {
+  if (!q) return '';
+  const region = stateByAbbr[q.abbr];
+  if (!region) return q.city;
+  return `${q.city}, ${region.name}, ${region.country}`;
+}
+
+function googleMapsUrl(q = current) {
+  const query = googleMapsQuery(q);
+  return query ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}` : '';
+}
+
+function googleMapsEmbedUrl(q = current) {
+  const query = googleMapsQuery(q);
+  return query ? `https://www.google.com/maps?q=${encodeURIComponent(query)}&z=6&output=embed` : '';
+}
+
+function closeMapDialog() {
+  if (!els.mapDialog) return;
+  if (els.mapDialog.open) els.mapDialog.close();
+  if (els.mapFrame) els.mapFrame.src = 'about:blank';
+}
+
+function openMapDialog(q = current) {
+  if (!q || isTimeMode() || !els.mapDialog || !els.mapFrame) return;
+  const region = stateByAbbr[q.abbr];
+  const label = region ? `${q.city}, ${region.name}` : q.city;
+  if (els.mapDialogTitle) els.mapDialogTitle.textContent = label;
+  els.mapFrame.title = label;
+  els.mapFrame.src = googleMapsEmbedUrl(q);
+  if (typeof els.mapDialog.showModal === 'function') els.mapDialog.showModal();
+  else window.open(googleMapsUrl(q), '_blank', 'noopener,noreferrer');
+}
+
+function openMapForState(abbr) {
+  if (!current || !answered || isTimeMode()) return false;
+  const q = recordForState(abbr);
+  if (!q) return false;
+  openMapDialog(q);
+  return true;
+}
+
+function handleTileAction(abbr) {
+  if (openMapForState(abbr)) return;
+  answer(abbr);
 }
 
 function nextQuestion() {
@@ -472,9 +528,9 @@ function renderMap() {
     mark.setAttribute('aria-hidden', 'true');
 
     g.append(rect, text, mark);
-    g.addEventListener('click', () => answer(s.abbr));
+    g.addEventListener('click', () => handleTileAction(s.abbr));
     g.addEventListener('keydown', ev => {
-      if (ev.key === ' ') { ev.preventDefault(); ev.stopPropagation(); answer(s.abbr); }
+      if (ev.key === ' ' || ev.key === 'Enter') { ev.preventDefault(); ev.stopPropagation(); handleTileAction(s.abbr); }
     });
     els.map.appendChild(g);
   }
@@ -489,12 +545,13 @@ function updateHighlights(selectedAbbr = null, revealCorrect = true) {
     const abbr = tile.dataset.abbr;
     const s = stateByAbbr[abbr];
     const mark = tile.querySelector('.result-mark');
-    tile.classList.remove('active-region', 'correct', 'wrong', 'dim');
+    tile.classList.remove('active-region', 'correct', 'wrong', 'dim', 'map-linkable');
     if (mark) mark.textContent = '';
     if (!activeStates.has(abbr)) tile.classList.add('dim');
     if (current && hintLevel > 0 && s && hintRegions.has(s.region)) tile.classList.add('active-region');
     if (answered && revealCorrect && current && correctSet.has(abbr)) {
       tile.classList.add('correct');
+      if (!isTimeMode()) tile.classList.add('map-linkable');
       if (mark) mark.textContent = '✓';
     }
     if (answered && selectedAbbr && abbr === selectedAbbr && !correctSet.has(selectedAbbr)) {
@@ -738,6 +795,9 @@ els.giveUpDialog.addEventListener('close', () => {
   const resultDialogWasShown = !els.closeGiveUpDialog.classList.contains('hidden');
   if (resultDialogWasShown && !timeRun.active && (timeRun.finished || timeRun.gaveUp)) resetTimeAttackToInitial();
 });
+els.closeMapDialog?.addEventListener('click', closeMapDialog);
+els.mapDialog?.addEventListener('cancel', () => { if (els.mapFrame) els.mapFrame.src = 'about:blank'; });
+els.mapDialog?.addEventListener('close', () => { if (els.mapFrame) els.mapFrame.src = 'about:blank'; });
 
 document.addEventListener('keydown', ev => {
   if (ev.target && ['SELECT', 'INPUT', 'TEXTAREA', 'BUTTON'].includes(ev.target.tagName)) return;

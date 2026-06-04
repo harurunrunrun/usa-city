@@ -103,6 +103,16 @@
     </div>
   </dialog>
 
+  <dialog id="mapDialog" class="map-dialog" aria-labelledby="mapDialogTitle">
+    <div class="map-dialog-card">
+      <div class="map-dialog-header">
+        <h2 id="mapDialogTitle"></h2>
+        <button id="closeMapDialog" type="button" aria-label="Close">×</button>
+      </div>
+      <iframe id="mapFrame" class="map-frame" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title=""></iframe>
+    </div>
+  </dialog>
+
   <script src="app.js"></script>
 </body>
 </html>

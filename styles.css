@@ -109,6 +109,15 @@ kbd { display: inline-block; min-width: 2.2rem; padding: 0.12rem 0.42rem; border
 .result-key { color: var(--muted); font-weight: 850; }
 .result-value { font-weight: 950; font-variant-numeric: tabular-nums; }
 .dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+
+.map-dialog { border: 0; padding: 0; background: transparent; color: var(--ink); }
+.map-dialog::backdrop { background: rgba(31, 41, 51, 0.34); }
+.map-dialog-card { width: min(58rem, calc(100vw - 1.4rem)); border: 1px solid var(--line); border-radius: 1rem; background: var(--panel); box-shadow: var(--shadow); overflow: hidden; }
+.map-dialog-header { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.72rem 0.82rem; border-bottom: 1px solid var(--line); }
+.map-dialog-header h2 { margin: 0; font-size: 1.05rem; line-height: 1.2; }
+#closeMapDialog { width: 2.1rem; height: 2.1rem; padding: 0; border-radius: 999px; font-size: 1.35rem; line-height: 1; }
+.map-frame { display: block; width: 100%; height: min(68vh, 34rem); border: 0; background: #eee; }
+
 .title-row { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; min-width: 0; }
 .sources-link { display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); color: var(--accent); padding: 0.48rem 0.78rem; font-weight: 850; line-height: 1; text-decoration: none; white-space: nowrap; }
 .sources-link:hover { background: #f7eadb; border-color: var(--accent-2); }
